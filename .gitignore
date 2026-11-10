@@ -1,0 +1,6 @@
+# Build output
+*.zip
+
+# OS and editor files
+.DS_Store
+.claude/
