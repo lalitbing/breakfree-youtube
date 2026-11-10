@@ -35,23 +35,29 @@
     .bf-reveal:hover { background: var(--yt-spec-mono-tonal-hover, rgba(255,255,255,.2)); }
     .bf-reveal:focus-visible { outline: 2px solid #5ee8a8; outline-offset: 2px; }
     .bf-reveal svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    /* Own tokens: YouTube's --yt-spec-* variables are not reliably defined where these
+       elements live, so the theme follows the html[dark] attribute YouTube sets. */
+    .bf-history, .bf-hq { --bf-bg: #fff; --bf-fg: #0f0f0f; --bf-fg2: #606060; --bf-layer: rgba(0,0,0,.05);
+      --bf-layer2: rgba(0,0,0,.1); --bf-edge: rgba(0,0,0,.1); --bf-shadow: rgba(0,0,0,.16); }
+    html[dark] :is(.bf-history, .bf-hq) { --bf-bg: #282828; --bf-fg: #f1f1f1; --bf-fg2: #aaa; --bf-layer: rgba(255,255,255,.1);
+      --bf-layer2: rgba(255,255,255,.2); --bf-edge: rgba(255,255,255,.1); --bf-shadow: rgba(0,0,0,.5); }
     .bf-history { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%;
-      color: var(--yt-spec-text-primary, #0f0f0f); text-decoration: none; }
-    .bf-history:hover, .bf-history[aria-expanded="true"] { background: var(--yt-spec-10-percent-layer, rgba(0,0,0,.1)); }
+      color: var(--bf-fg); text-decoration: none; }
+    .bf-history:hover, .bf-history[aria-expanded="true"] { background: var(--bf-layer2); }
     .bf-history:focus-visible { outline: 2px solid #5ee8a8; outline-offset: 2px; }
     .bf-history svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .bf-hq { position: fixed; z-index: 2300; width: 380px; max-width: calc(100vw - 16px); box-sizing: border-box; padding: 8px 0;
-      border-radius: 12px; background: var(--yt-spec-menu-background, #fff); color: var(--yt-spec-text-primary, #0f0f0f);
-      box-shadow: 0 4px 32px rgba(0,0,0,.16), 0 0 0 1px var(--yt-spec-10-percent-layer, rgba(0,0,0,.1));
+      border-radius: 12px; background: var(--bf-bg); color: var(--bf-fg);
+      box-shadow: 0 4px 32px var(--bf-shadow), 0 0 0 1px var(--bf-edge);
       font: 400 14px/1.4 Roboto, Arial, sans-serif; animation: bf-hq-in .14s ease-out; }
     @keyframes bf-hq-in { from { opacity: 0; transform: translateY(-4px); } }
     .bf-hq-head { display: flex; align-items: baseline; justify-content: space-between; padding: 6px 16px 10px; }
     .bf-hq-head span { font-size: 16px; font-weight: 500; }
-    .bf-hq-head small { font-size: 11px; color: var(--yt-spec-text-secondary, #606060); }
+    .bf-hq-head small { font-size: 11px; color: var(--bf-fg2); }
     .bf-hq-item { display: flex; gap: 12px; padding: 6px 16px; color: inherit; text-decoration: none; }
-    a.bf-hq-item:hover, a.bf-hq-item:focus-visible { background: var(--yt-spec-10-percent-layer, rgba(0,0,0,.05)); outline: none; }
+    a.bf-hq-item:hover, a.bf-hq-item:focus-visible { background: var(--bf-layer); outline: none; }
     .bf-hq-thumb { position: relative; flex: none; width: 120px; height: 68px; border-radius: 8px; overflow: hidden;
-      background: var(--yt-spec-10-percent-layer, rgba(0,0,0,.1)); }
+      background: var(--bf-layer2); }
     .bf-hq-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .bf-hq-dur { position: absolute; right: 4px; bottom: 4px; padding: 1px 4px; border-radius: 4px; background: rgba(0,0,0,.8);
       color: #fff; font-size: 11px; font-weight: 500; line-height: 16px; }
@@ -59,15 +65,15 @@
     .bf-hq-prog i { display: block; height: 100%; background: #f00; }
     .bf-hq-text { min-width: 0; flex: 1; padding-top: 2px; }
     .bf-hq-title { font-weight: 500; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    .bf-hq-ch { margin-top: 4px; font-size: 12px; color: var(--yt-spec-text-secondary, #606060);
+    .bf-hq-ch { margin-top: 4px; font-size: 12px; color: var(--bf-fg2);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .bf-hq-skel .bf-hq-text { height: 14px; margin-top: 6px; border-radius: 4px; background: var(--yt-spec-10-percent-layer, rgba(0,0,0,.1)); }
+    .bf-hq-skel .bf-hq-text { height: 14px; margin-top: 6px; border-radius: 4px; background: var(--bf-layer2); }
     .bf-hq-skel > * { animation: bf-hq-pulse 1.2s ease-in-out infinite; }
     @keyframes bf-hq-pulse { 50% { opacity: .45; } }
-    .bf-hq-empty { padding: 20px 16px; color: var(--yt-spec-text-secondary, #606060); text-align: center; }
+    .bf-hq-empty { padding: 20px 16px; color: var(--bf-fg2); text-align: center; }
     .bf-hq-all { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 8px 16px 4px; height: 36px; border-radius: 18px;
-      background: var(--yt-spec-badge-chip-background, rgba(0,0,0,.05)); color: inherit; text-decoration: none; font-weight: 500; }
-    .bf-hq-all:hover, .bf-hq-all:focus-visible { background: var(--yt-spec-10-percent-layer, rgba(0,0,0,.1)); outline: none; }
+      background: var(--bf-layer); color: inherit; text-decoration: none; font-weight: 500; }
+    .bf-hq-all:hover, .bf-hq-all:focus-visible { background: var(--bf-layer2); outline: none; }
     .bf-hq-all svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     @media (prefers-reduced-motion: reduce) { .bf-hq, .bf-hq-skel > * { animation: none; } }
     .bf-reveal small { font-weight: 400; color: var(--yt-spec-text-secondary, #aaa); }
