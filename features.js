@@ -198,6 +198,7 @@ var BF_FEATURES = (() => {
         {
           title: 'Buttons',
           items: [
+            { k: 'hd.history', label: "Show 'History' Button", hint: 'Adds a quick link to your watch history in the header', js: true },
             { k: 'hd.create', label: "Hide 'Create' Button", hide: 'ytd-masthead #buttons > :is(ytd-button-renderer, ytd-topbar-menu-button-renderer):has([aria-label="Create"])' },
             { k: 'hd.upload', label: "Hide 'Upload' Button", hide: 'ytd-masthead #buttons > :is(ytd-button-renderer, ytd-topbar-menu-button-renderer):has([aria-label="Upload"], a[href*="/upload"])' },
             { k: 'hd.notifications', label: "Hide 'Notifications' Button", hide: 'ytd-masthead ytd-notification-topbar-button-renderer' },

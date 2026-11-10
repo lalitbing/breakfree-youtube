@@ -35,6 +35,10 @@
     .bf-reveal:hover { background: var(--yt-spec-mono-tonal-hover, rgba(255,255,255,.2)); }
     .bf-reveal:focus-visible { outline: 2px solid #5ee8a8; outline-offset: 2px; }
     .bf-reveal svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .bf-history { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%;
+      color: var(--yt-spec-text-primary, #f1f1f1); text-decoration: none; }
+    .bf-history:hover { background: var(--yt-spec-mono-tonal-hover, rgba(255,255,255,.1)); }
+    .bf-history svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .bf-reveal small { font-weight: 400; color: var(--yt-spec-text-secondary, #aaa); }
   `;
 
@@ -315,6 +319,38 @@
     if (revealBtn.previousElementSibling !== meta) meta.after(revealBtn);
   }
 
+  /* ---------- header history shortcut ---------- */
+
+  let historyBtn = null;
+
+  function makeHistoryButton() {
+    const a = document.createElement('a');
+    a.className = 'bf-history';
+    a.href = '/feed/history';
+    a.title = 'History';
+    a.setAttribute('aria-label', 'History');
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    const p1 = document.createElementNS(NS, 'path');
+    p1.setAttribute('d', 'M3 12a9 9 0 1 0 3-6.7L3 8');
+    const p2 = document.createElementNS(NS, 'path');
+    p2.setAttribute('d', 'M3 3v5h5');
+    const p3 = document.createElementNS(NS, 'path');
+    p3.setAttribute('d', 'M12 7v5l3 2');
+    svg.append(p1, p2, p3);
+    a.append(svg);
+    return a;
+  }
+
+  function historyShortcut() {
+    const buttons = on('hd.history') && document.querySelector('ytd-masthead #end #buttons, ytd-masthead #buttons');
+    if (!buttons) { if (historyBtn) historyBtn.remove(); return; }
+    if (!historyBtn) historyBtn = makeHistoryButton();
+    if (historyBtn.parentElement !== buttons) buttons.prepend(historyBtn);
+  }
+
   function watchPage() {
     if (location.pathname !== '/watch') return;
 
@@ -388,6 +424,7 @@
     clearInterval(scheduleTimer);
     style.remove();
     if (revealBtn) revealBtn.remove();
+    if (historyBtn) historyBtn.remove();
     root.removeAttribute('data-bf-show-related');
   }
 
@@ -398,6 +435,7 @@
     scanItems();
     replaceThumbnails();
     relatedReveal();
+    historyShortcut();
     if (live) {
       tagChannelSections();
       watchPage();
