@@ -36,9 +36,40 @@
     .bf-reveal:focus-visible { outline: 2px solid #5ee8a8; outline-offset: 2px; }
     .bf-reveal svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .bf-history { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%;
-      color: var(--yt-spec-text-primary, #f1f1f1); text-decoration: none; }
-    .bf-history:hover { background: var(--yt-spec-mono-tonal-hover, rgba(255,255,255,.1)); }
+      color: var(--yt-spec-text-primary, #0f0f0f); text-decoration: none; }
+    .bf-history:hover, .bf-history[aria-expanded="true"] { background: var(--yt-spec-10-percent-layer, rgba(0,0,0,.1)); }
+    .bf-history:focus-visible { outline: 2px solid #5ee8a8; outline-offset: 2px; }
     .bf-history svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .bf-hq { position: fixed; z-index: 2300; width: 380px; max-width: calc(100vw - 16px); box-sizing: border-box; padding: 8px 0;
+      border-radius: 12px; background: var(--yt-spec-menu-background, #fff); color: var(--yt-spec-text-primary, #0f0f0f);
+      box-shadow: 0 4px 32px rgba(0,0,0,.16), 0 0 0 1px var(--yt-spec-10-percent-layer, rgba(0,0,0,.1));
+      font: 400 14px/1.4 Roboto, Arial, sans-serif; animation: bf-hq-in .14s ease-out; }
+    @keyframes bf-hq-in { from { opacity: 0; transform: translateY(-4px); } }
+    .bf-hq-head { display: flex; align-items: baseline; justify-content: space-between; padding: 6px 16px 10px; }
+    .bf-hq-head span { font-size: 16px; font-weight: 500; }
+    .bf-hq-head small { font-size: 11px; color: var(--yt-spec-text-secondary, #606060); }
+    .bf-hq-item { display: flex; gap: 12px; padding: 6px 16px; color: inherit; text-decoration: none; }
+    a.bf-hq-item:hover, a.bf-hq-item:focus-visible { background: var(--yt-spec-10-percent-layer, rgba(0,0,0,.05)); outline: none; }
+    .bf-hq-thumb { position: relative; flex: none; width: 120px; height: 68px; border-radius: 8px; overflow: hidden;
+      background: var(--yt-spec-10-percent-layer, rgba(0,0,0,.1)); }
+    .bf-hq-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .bf-hq-dur { position: absolute; right: 4px; bottom: 4px; padding: 1px 4px; border-radius: 4px; background: rgba(0,0,0,.8);
+      color: #fff; font-size: 11px; font-weight: 500; line-height: 16px; }
+    .bf-hq-prog { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,.4); }
+    .bf-hq-prog i { display: block; height: 100%; background: #f00; }
+    .bf-hq-text { min-width: 0; flex: 1; padding-top: 2px; }
+    .bf-hq-title { font-weight: 500; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .bf-hq-ch { margin-top: 4px; font-size: 12px; color: var(--yt-spec-text-secondary, #606060);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bf-hq-skel .bf-hq-text { height: 14px; margin-top: 6px; border-radius: 4px; background: var(--yt-spec-10-percent-layer, rgba(0,0,0,.1)); }
+    .bf-hq-skel > * { animation: bf-hq-pulse 1.2s ease-in-out infinite; }
+    @keyframes bf-hq-pulse { 50% { opacity: .45; } }
+    .bf-hq-empty { padding: 20px 16px; color: var(--yt-spec-text-secondary, #606060); text-align: center; }
+    .bf-hq-all { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 8px 16px 4px; height: 36px; border-radius: 18px;
+      background: var(--yt-spec-badge-chip-background, rgba(0,0,0,.05)); color: inherit; text-decoration: none; font-weight: 500; }
+    .bf-hq-all:hover, .bf-hq-all:focus-visible { background: var(--yt-spec-10-percent-layer, rgba(0,0,0,.1)); outline: none; }
+    .bf-hq-all svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    @media (prefers-reduced-motion: reduce) { .bf-hq, .bf-hq-skel > * { animation: none; } }
     .bf-reveal small { font-weight: 400; color: var(--yt-spec-text-secondary, #aaa); }
   `;
 
@@ -319,34 +350,285 @@
     if (revealBtn.previousElementSibling !== meta) meta.after(revealBtn);
   }
 
-  /* ---------- header history shortcut ---------- */
+  /* ---------- header history shortcut + quick view ---------- */
+
+  /* The header button opens a small popover with the latest videos from the
+     watch history. Ctrl/Cmd/middle click still opens the full history page.
+     The list comes from the history page's own initial data (same origin, so
+     the user's session cookies apply); nothing leaves youtube.com. */
+
+  const HQ_LIMIT = 5;
+  const HQ_FRESH_MS = 30000;
+  const SVG_NS = 'http://www.w3.org/2000/svg';
 
   let historyBtn = null;
+  let hqPop = null;
+  const hq = { items: null, at: 0, pending: null, error: false };
 
-  function makeHistoryButton() {
-    const a = document.createElement('a');
-    a.className = 'bf-history';
-    a.href = '/feed/history';
-    a.title = 'History';
-    a.setAttribute('aria-label', 'History');
-    const NS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(NS, 'svg');
+  // Built node by node: YouTube enforces Trusted Types, which blocks innerHTML.
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text) n.textContent = text;
+    return n;
+  }
+
+  function icon(paths, cls) {
+    const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('aria-hidden', 'true');
-    const p1 = document.createElementNS(NS, 'path');
-    p1.setAttribute('d', 'M3 12a9 9 0 1 0 3-6.7L3 8');
-    const p2 = document.createElementNS(NS, 'path');
-    p2.setAttribute('d', 'M3 3v5h5');
-    const p3 = document.createElementNS(NS, 'path');
-    p3.setAttribute('d', 'M12 7v5l3 2');
-    svg.append(p1, p2, p3);
-    a.append(svg);
+    if (cls) svg.setAttribute('class', cls);
+    paths.forEach(d => {
+      const p = document.createElementNS(SVG_NS, 'path');
+      p.setAttribute('d', d);
+      svg.append(p);
+    });
+    return svg;
+  }
+
+  /* ----- data ----- */
+
+  const ytText = t => !t ? '' : typeof t === 'string' ? t
+    : t.simpleText || t.content || (t.runs || []).map(r => r.text).join('');
+
+  // First value stored under `key` anywhere inside `o` (depth first).
+  function findKey(o, key, depth = 0) {
+    if (!o || typeof o !== 'object' || depth > 12) return undefined;
+    if (!Array.isArray(o) && key in o) return o[key];
+    for (const k in o) {
+      const r = findKey(o[k], key, depth + 1);
+      if (r !== undefined) return r;
+    }
+    return undefined;
+  }
+
+  // Pulls the newest videos out of /feed/history's ytInitialData. YouTube serves
+  // both the older videoRenderer and the newer lockupViewModel; Shorts are skipped.
+  function historyFromData(data, limit) {
+    const out = [];
+    const seen = new Set();
+    const add = v => {
+      if (!v.id || seen.has(v.id) || out.length >= limit) return;
+      seen.add(v.id);
+      out.push(v);
+    };
+    const walk = o => {
+      if (out.length >= limit || !o || typeof o !== 'object') return;
+      if (Array.isArray(o)) { o.forEach(walk); return; }
+      const vr = o.videoRenderer;
+      const lv = o.lockupViewModel;
+      if (vr && vr.videoId) {
+        add({
+          id: vr.videoId,
+          title: ytText(vr.title),
+          channel: ytText(vr.longBylineText || vr.ownerText || vr.shortBylineText),
+          duration: ytText(vr.lengthText),
+          progress: Number(findKey(vr.thumbnailOverlays, 'percentDurationWatched')) || 0
+        });
+      } else if (lv && lv.contentId && lv.contentType === 'LOCKUP_CONTENT_TYPE_VIDEO') {
+        const meta = (lv.metadata && lv.metadata.lockupMetadataViewModel) || {};
+        const rows = findKey(meta.metadata, 'metadataRows') || [];
+        const firstPart = rows[0] && rows[0].metadataParts && rows[0].metadataParts[0];
+        const badge = findKey(lv.contentImage, 'thumbnailBadgeViewModel');
+        const bar = findKey(lv.contentImage, 'thumbnailOverlayProgressBarViewModel');
+        add({
+          id: lv.contentId,
+          title: ytText(meta.title),
+          channel: firstPart ? ytText(firstPart.text) : '',
+          duration: badge ? ytText(badge.text) : '',
+          progress: bar ? Number(bar.startPercent) || 0 : 0
+        });
+      } else {
+        for (const k in o) walk(o[k]);
+      }
+    };
+    walk(data);
+    return out;
+  }
+
+  function initialDataFromHtml(html) {
+    const m = /(?:var ytInitialData|window\["ytInitialData"\])\s*=\s*/.exec(html);
+    if (!m) return null;
+    const start = m.index + m[0].length;
+    const end = html.indexOf(';</script>', start);
+    if (end < 0) return null;
+    try { return JSON.parse(html.slice(start, end)); } catch (e) { return null; }
+  }
+
+  function loadHistory(force) {
+    if (hq.pending) return hq.pending;
+    if (!force && hq.items && Date.now() - hq.at < HQ_FRESH_MS) return Promise.resolve(hq.items);
+    hq.pending = fetch('/feed/history', { credentials: 'same-origin' })
+      .then(r => (r.ok ? r.text() : Promise.reject(new Error('HTTP ' + r.status))))
+      .then(html => {
+        const data = initialDataFromHtml(html);
+        if (!data) throw new Error('no ytInitialData');
+        hq.items = historyFromData(data, HQ_LIMIT);
+        hq.at = Date.now();
+        hq.error = false;
+        return hq.items;
+      })
+      .catch(() => { hq.error = true; return hq.items; })
+      .finally(() => { hq.pending = null; });
+    return hq.pending;
+  }
+
+  /* ----- popover ----- */
+
+  function historyItem(v) {
+    const a = el('a', 'bf-hq-item');
+    a.href = '/watch?v=' + encodeURIComponent(v.id);
+    const thumb = el('div', 'bf-hq-thumb');
+    const img = el('img');
+    img.alt = '';
+    img.loading = 'lazy';
+    img.src = `https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/mqdefault.jpg`;
+    thumb.append(img);
+    if (v.duration) thumb.append(el('span', 'bf-hq-dur', v.duration));
+    if (v.progress > 0) {
+      const bar = el('div', 'bf-hq-prog');
+      const fill = el('i');
+      fill.style.width = Math.min(100, v.progress) + '%';
+      bar.append(fill);
+      thumb.append(bar);
+    }
+    const text = el('div', 'bf-hq-text');
+    text.append(el('div', 'bf-hq-title', v.title || 'Untitled video'));
+    if (v.channel) text.append(el('div', 'bf-hq-ch', v.channel));
+    a.append(thumb, text);
+    a.addEventListener('click', closeHistoryPop);
+    return a;
+  }
+
+  function renderHistoryList() {
+    if (!hqPop) return;
+    const list = hqPop.querySelector('.bf-hq-list');
+    list.replaceChildren();
+    list.removeAttribute('aria-busy');
+    if (hq.items && hq.items.length) {
+      hq.items.forEach(v => list.append(historyItem(v)));
+    } else if (hq.items === null && !hq.error) {
+      list.setAttribute('aria-busy', 'true');
+      for (let i = 0; i < HQ_LIMIT; i++) {
+        const row = el('div', 'bf-hq-item bf-hq-skel');
+        row.append(el('div', 'bf-hq-thumb'), el('div', 'bf-hq-text'));
+        list.append(row);
+      }
+    } else {
+      list.append(el('div', 'bf-hq-empty', hq.error
+        ? "Couldn't load your history. Try again in a moment."
+        : 'Nothing here yet. Sign in and make sure watch history is on.'));
+    }
+  }
+
+  function placeHistoryPop() {
+    if (!hqPop || !historyBtn) return;
+    const r = historyBtn.getBoundingClientRect();
+    const w = hqPop.offsetWidth;
+    const left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8));
+    hqPop.style.top = Math.round(r.bottom + 8) + 'px';
+    hqPop.style.left = Math.round(left) + 'px';
+  }
+
+  function openHistoryPop(viaKeyboard) {
+    if (hqPop) return;
+    hqPop = el('div', 'bf-hq');
+    hqPop.id = 'bf-hq';
+    hqPop.setAttribute('role', 'dialog');
+    hqPop.setAttribute('aria-label', 'Recently watched');
+
+    const head = el('div', 'bf-hq-head');
+    head.append(el('span', '', 'Recently watched'), el('small', '', 'BreakFree'));
+
+    const all = el('a', 'bf-hq-all');
+    all.href = '/feed/history';
+    all.append(el('span', '', 'View all history'), icon(['M5 12h14', 'M13 6l6 6-6 6']));
+    all.addEventListener('click', closeHistoryPop);
+
+    hqPop.append(head, el('div', 'bf-hq-list'), all);
+    document.body.append(hqPop);
+    historyBtn.setAttribute('aria-expanded', 'true');
+    renderHistoryList();
+    placeHistoryPop();
+
+    const focusFirst = () => {
+      const first = hqPop && hqPop.querySelector('a');
+      if (first) first.focus();
+    };
+    if (viaKeyboard) focusFirst();
+
+    loadHistory().then(() => {
+      if (!hqPop) return;
+      const hadFocus = hqPop.contains(document.activeElement);
+      renderHistoryList();
+      if (hadFocus || viaKeyboard) focusFirst();
+    });
+  }
+
+  function closeHistoryPop() {
+    if (!hqPop) return;
+    hqPop.remove();
+    hqPop = null;
+    if (historyBtn) historyBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  document.addEventListener('pointerdown', e => {
+    if (hqPop && !hqPop.contains(e.target) && !(historyBtn && historyBtn.contains(e.target))) closeHistoryPop();
+  }, true);
+
+  document.addEventListener('keydown', e => {
+    if (!hqPop) return;
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      closeHistoryPop();
+      if (historyBtn) historyBtn.focus();
+      return;
+    }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const links = [...hqPop.querySelectorAll('a')];
+    const i = links.indexOf(document.activeElement);
+    if (i < 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    links[(i + (e.key === 'ArrowDown' ? 1 : links.length - 1)) % links.length].focus();
+  }, true);
+
+  window.addEventListener('resize', placeHistoryPop);
+  document.addEventListener('yt-navigate-start', () => {
+    closeHistoryPop();
+    hq.at = 0; // a new video may have joined the history
+  });
+
+  function makeHistoryButton() {
+    const a = el('a', 'bf-history');
+    a.href = '/feed/history';
+    a.title = 'Recently watched';
+    a.setAttribute('aria-label', 'Recently watched');
+    a.setAttribute('aria-haspopup', 'dialog');
+    a.setAttribute('aria-controls', 'bf-hq');
+    a.setAttribute('aria-expanded', 'false');
+    a.append(icon(['M3 12a9 9 0 1 0 3-6.7L3 8', 'M3 3v5h5', 'M12 7v5l3 2']));
+    a.addEventListener('click', e => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (hqPop) closeHistoryPop();
+      else openHistoryPop(e.detail === 0);
+    });
+    // Start fetching as soon as the pointer heads for the button.
+    const warm = () => { loadHistory(); };
+    a.addEventListener('pointerenter', warm);
+    a.addEventListener('focus', warm);
     return a;
   }
 
   function historyShortcut() {
     const buttons = on('hd.history') && document.querySelector('ytd-masthead #end #buttons, ytd-masthead #buttons');
-    if (!buttons) { if (historyBtn) historyBtn.remove(); return; }
+    if (!buttons) {
+      closeHistoryPop();
+      if (historyBtn) historyBtn.remove();
+      return;
+    }
     if (!historyBtn) historyBtn = makeHistoryButton();
     if (historyBtn.parentElement !== buttons) buttons.prepend(historyBtn);
   }
@@ -424,6 +706,7 @@
     clearInterval(scheduleTimer);
     style.remove();
     if (revealBtn) revealBtn.remove();
+    closeHistoryPop();
     if (historyBtn) historyBtn.remove();
     root.removeAttribute('data-bf-show-related');
   }
