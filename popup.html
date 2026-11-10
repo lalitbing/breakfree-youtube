@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BreakFree</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="top" id="top">
+  <header class="bar">
+    <button type="button" class="iconbtn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+
+    <div class="brand">
+      <img class="mark" src="icons/icon.svg" alt="">
+      <span class="word">Break<b>Free</b></span>
+    </div>
+
+    <button type="button" class="iconbtn" id="panelBtn" aria-label="Open in side panel" title="Open in side panel" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/></svg>
+    </button>
+
+    <label class="power" title="Turn BreakFree on or off">
+      <input type="checkbox" id="enabled" aria-label="BreakFree on">
+      <span class="power-track"><span class="power-dot"></span></span>
+      <span class="power-text" id="powerText">On</span>
+    </label>
+  </header>
+
+  <div class="pickers">
+    <div class="picker">
+      <span class="picker-label" id="presetLabel">Preset</span>
+      <select id="preset" aria-label="Preset"></select>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+    <div class="picker">
+      <span class="picker-label" id="sectionLabel">Browse</span>
+      <select id="section" aria-label="Section"></select>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+  </div>
+
+  <div class="searchwrap">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+    <input type="search" id="search" placeholder="Search settings" aria-label="Search settings" autocomplete="off">
+  </div>
+
+  <p id="status" class="status" role="status" hidden></p>
+  </div>
+
+  <main id="view"></main>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <nav class="drawer" id="drawer" aria-label="All sections" hidden>
+    <div class="drawer-head">
+      <span>Go to</span>
+      <button type="button" class="iconbtn" id="drawerClose" aria-label="Close menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div id="drawerList"></div>
+    <a class="drawer-foot" id="openPanel" href="#" hidden>Open in the side panel</a>
+    <a class="drawer-foot" id="usePopup" href="#" hidden>Use the popup instead</a>
+    <a class="drawer-foot" id="openTab" href="#">Open in a full tab</a>
+  </nav>
+
+  <script src="features.js"></script>
+  <script src="core.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
