@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#3FE8A2"/>
+      <stop offset="1" stop-color="#0E9F62"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E4F7EE"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D2F3E3"/>
+      <stop offset="1" stop-color="#A9E6C9"/>
+    </linearGradient>
+    <linearGradient id="play" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2EDB92"/>
+      <stop offset="1" stop-color="#0C9A5E"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <rect width="128" height="64" rx="28" fill="#fff" opacity=".08"/>
+  <g transform="rotate(-9 64 64)">
+    <rect x="31" y="40" width="68" height="66" rx="17" fill="#04502F" opacity=".38" filter="url(#shadow)"/>
+    <rect x="30" y="35" width="68" height="66" rx="17" fill="url(#side)"/>
+    <rect x="30" y="28" width="68" height="66" rx="17" fill="url(#face)"/>
+    <path d="M57 49v26l21-13z" fill="url(#play)" stroke="url(#play)" stroke-width="7" stroke-linejoin="round"/>
+  </g>
+</svg>
